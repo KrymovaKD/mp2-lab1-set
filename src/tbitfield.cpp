@@ -7,12 +7,29 @@
 
 #include "tbitfield.h"
 
-TBitField::TBitField(int len)
+TBitField::TBitField(int len)//инициализация
 {
+	if (len <= 0) { throw "wrong length"; }
+	else {
+		MemLen = (len / 32) + 1;//количество интовских чисел(0,1,2) в массиве
+		pMem = new TELEM[MemLen];//выделение памяти для массива беззнаковых интов заданной длины мемлен
+		BitLen = len;//ограничитель в массиве битов 
+		for (int i = 0; i < MemLen; i++)
+		{
+			pMem[i] = 0;
+		}
+	}
 }
 
 TBitField::TBitField(const TBitField &bf) // конструктор копирования
 {
+	MemLen = bf.MemLen;
+	BitLen = bf.BitLen;
+	pMem = new TELEM[MemLen];
+	for (int i = 0; i < MemLen; i++)
+	{
+		pMem[i] = bf.pMem[i];
+	}
 }
 
 TBitField::~TBitField()
@@ -27,7 +44,10 @@ int TBitField::GetMemIndex(const int n) const // индекс Мем для би
 
 TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n
 {
-	return 0;
+	TELEM t = 1;//беззнаковая единица , биты которой мы будем двигать для работы с числами с массиве
+	char shift = n % 32;//находим нужный нам сдвиг
+	TELEM result = t << shift;//сдвигаем разряд и получаем битовую маску
+	return result;
 }
 
 // доступ к битам битового поля
