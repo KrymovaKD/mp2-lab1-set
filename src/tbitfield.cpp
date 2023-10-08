@@ -37,9 +37,9 @@ TBitField::~TBitField()
 	delete[] pMem;
 }
 
-int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n
+int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n//побитовая длинна n
 {
-	return 0;
+	return (n/32);
 }
 
 TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n
@@ -59,32 +59,72 @@ int TBitField::GetLength(void) const // получить длину (к-во б�
 
 void TBitField::SetBit(const int n) // установить бит
 {
+	if (n < 0) {
+		throw "wrong bit";
+}
+	TELEM mask = GetMemMask(n);
+	int idx = GetMemIndex(n);//ячейка
+	pMem[idx] = pMem[idx]|mask;//складывакем двоичные числа
 }
 
 void TBitField::ClrBit(const int n) // очистить бит
 {
+	if (n < 0) {
+		throw "wrong bit";
+	}
+	TELEM mask = GetMemMask(n);//получаем маску для бита
+	int idx = GetMemIndex(n);//ячейка
+	pMem[idx] = pMem[idx] & mask;//умножаем двоичные числа
 }
 
 int TBitField::GetBit(const int n) const // получить значение бита
 {
-  return 0;
+	if (n < 0) {
+		throw "wrong bit";
+	}
+	TELEM mask = GetMemMask(n);//создаем маску 00001000..
+	int idx = GetMemIndex(n);//получаем номер ячейки
+	TELEM res = mask & pMem[idx];//умножая, получаем бит
+  return res;
 }
 
 // битовые операции
 
 TBitField& TBitField::operator=(const TBitField &bf) // присваивание
 {
+	if (bf.MemLen != MemLen) {
+		delete[]pMem;
+		MemLen = bf.MemLen;
+		pMem = new TELEM[MemLen];
+	}
+	BitLen = bf.BitLen;
+	for (int i = 0; i < MemLen; i++)
+	{
+		pMem[i] = bf.pMem[i];
+	}
 	return *this;
 }
 
-int TBitField::operator==(const TBitField &bf) const // сравнение
+int TBitField::operator==(const TBitField& bf) const // сравнение
 {
-  return 0;
+	if (BitLen != bf.BitLen)
+		return false;
+	for (int i = 0; i < MemLen - 1; i++)//минус один потому что не учитываем последнюю,её отдельно ниже
+	{
+		if (pMem[i] != bf.pMem[i])
+			return false;
+	}
+	for (int i = (MemLen - 1) * 32; i < BitLen; i++)//в хвосте может быть что-угодно,поэтому проверяем побитово
+	{
+		if (GetBit(i) != bf.GetBit(i))//сравниваем побитово с помощью функции получения значение данного бита
+			return false;
+	}
+  return true;
 }
 
 int TBitField::operator!=(const TBitField &bf) const // сравнение
 {
-  return 0;
+	return !(*this==bf);//зыс приходит ссылкой,чтобы получить его нужно разоименовать 
 }
 
 TBitField TBitField::operator|(const TBitField &bf) // операция "или"
